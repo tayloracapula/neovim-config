@@ -18,7 +18,6 @@ return {
 	}
     end,
     config = function()
-	local lsp = require("lspconfig")
 	local coq = require("coq")
 	vim.keymap.set('i', '<Tab>', function()
 	    if vim.fn.pumvisible() == 1 then
@@ -36,7 +35,8 @@ return {
 	    end
 	end, { expr = true, silent = true })
 
-	lsp.ts_ls.setup(coq.lsp_ensure_capabilities({
+	vim.lsp.config('ts_ls',{
+	    coq.lsp_ensure_capabilities({
 	   settings = {
           typescript = {
             includeCompletionsForModuleExports = true,
@@ -59,8 +59,7 @@ return {
             includeCompletionsWithInsertText = true,
           },
         }, 
-	}))
-	vim.lsp.config('ts_ls',{})
+	})})
 	vim.lsp.enable('ts_ls')
 
 	vim.lsp.config('rust_analyzer', {
