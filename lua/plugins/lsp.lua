@@ -65,9 +65,49 @@ return {
 	vim.lsp.config('rust_analyzer', {
 	  settings = {
 	    ['rust-analyzer'] = {
-	      diagnostics = {
-		enable = false;
-	      }
+		checkOnSave = {
+		    command = "clippy"
+		},
+		diagnostics = {
+		    enable = true;
+		    experimental = {
+			enable = true
+		    },
+		    completion = {
+			callable = {
+			    snippets = "fill_arguments",
+			}
+		    },
+			inlayHints = {
+          enable = true,
+          showParameterNames = true,
+          parameterHintsPrefix = "<- ",
+          otherHintsPrefix = "=> ",
+          maxLength = 25,
+          bindingModeHints = {
+            enable = false,
+          },
+          chainingHints = {
+            enable = true,
+          },
+          closingBraceHints = {
+            enable = true,
+            minLines = 25,
+          },
+          closureReturnTypeHints = {
+            enable = "never",
+          },
+          lifetimeElisionHints = {
+            enable = "never",
+            useParameterNames = false,
+          },
+          typeHints = {
+            enable = true,
+            hideClosureInitialization = false,
+            hideNamedConstructor = false,
+          },
+        },
+		}
 	    }
 	  }
 	})
