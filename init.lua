@@ -16,3 +16,4 @@ vim.opt.shiftwidth = 4
 require("config.keybinds")
 require("config.lazy")
 vim.cmd.colorscheme "catppuccin-mocha"
+
