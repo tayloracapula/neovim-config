@@ -2,41 +2,89 @@ return {
     "neovim/nvim-lspconfig",
     lazy = false,
     dependencies = {
-	-- main one
-	{ "ms-jpq/coq_nvim", branch = "coq" },
-
-	-- 9000+ Snippets
-	{ "ms-jpq/coq.artifacts", branch = "artifacts" },
-
-	-- lua & third party sources -- See https://github.com/ms-jpq/coq.thirdparty
-	-- Need to **configure separately**
-	{ 'ms-jpq/coq.thirdparty', branch = "3p" },
+	{ "hrsh7th/cmp-nvim-lsp" },
+	{ "hrsh7th/cmp-buffer" },
+	{ "hrsh7th/cmp-path" },
+	{ "hrsh7th/cmp-cmdline" },
+	{ "hrsh7th/nvim-cmp" },
+	{ "hrsh7th/cmp-vsnip" },
+	{ "hrsh7th/vim-vsnip" },
     },
-    init = function()
-	vim.g.coq_settings = {
-	    auto_start = "shut-up",
-	}
-    end,
     config = function()
-	local coq = require("coq")
-	vim.keymap.set('i', '<Tab>', function()
-	    if vim.fn.pumvisible() == 1 then
-	    return '<C-n>'
-	    else
-	    return vim.fn['coq#Nav']('next')
-	    end
-	end, { expr = true, silent = true })
+	local cmp = require'cmp'
+	cmp.setup({
+	    snippet = {
+	      -- REQUIRED - you must specify a snippet engine
+	      expand = function(args)
+		vim.fn["vsnip#anonymous"](args.body) -- For `vsnip` users.
+		-- require('luasnip').lsp_expand(args.body) -- For `luasnip` users.
+		-- require('snippy').expand_snippet(args.body) -- For `snippy` users.
+		-- vim.fn["UltiSnips#Anon"](args.body) -- For `ultisnips` users.
+		-- vim.snippet.expand(args.body) -- For native neovim snippets (Neovim v0.10+)
 
-	vim.keymap.set('i', '<S-Tab>', function()
-	    if vim.fn.pumvisible() == 1 then
-	    return '<C-p>'
-	    else
-	    return vim.fn['coq#Nav']('prev')
-	    end
-	end, { expr = true, silent = true })
+		-- For `mini.snippets` users:
+		-- local insert = MiniSnippets.config.expand.insert or MiniSnippets.default_insert
+		-- insert({ body = args.body }) -- Insert at cursor
+		-- cmp.resubscribe({ "TextChangedI", "TextChangedP" })
+		-- require("cmp.config").set_onetime({ sources = {} })
+	      end,
+	    },
+	    window = {
+	      -- completion = cmp.config.window.bordered(),
+	      -- documentation = cmp.config.window.bordered(),
+	    },
+	    mapping = cmp.mapping.preset.insert({
+	      ['<C-b>'] = cmp.mapping.scroll_docs(-4),
+	      ['<C-f>'] = cmp.mapping.scroll_docs(4),
+	      ['<C-Space>'] = cmp.mapping.complete(),
+	      ['<C-e>'] = cmp.mapping.abort(),
+	      ['<CR>'] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
+	    }),
+	    sources = cmp.config.sources({
+	      { name = 'nvim_lsp' },
+	      { name = 'vsnip' }, -- For vsnip users.
+	      -- { name = 'luasnip' }, -- For luasnip users.
+	      -- { name = 'ultisnips' }, -- For ultisnips users.
+	      -- { name = 'snippy' }, -- For snippy users.
+	    }, {
+	      { name = 'buffer' },
+	    })
+	  })
+
+	  -- To use git you need to install the plugin petertriho/cmp-git and uncomment lines below
+	  -- Set configuration for specific filetype.
+	  --[[ cmp.setup.filetype('gitcommit', {
+	    sources = cmp.config.sources({
+	      { name = 'git' },
+	    }, {
+	      { name = 'buffer' },
+	    })
+	 })
+	 require("cmp_git").setup() ]]--
+
+	  -- Use buffer source for `/` and `?` (if you enabled `native_menu`, this won't work anymore).
+	  cmp.setup.cmdline({ '/', '?' }, {
+	    mapping = cmp.mapping.preset.cmdline(),
+	    sources = {
+	      { name = 'buffer' }
+	    }
+	  })
+
+	  -- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
+	  cmp.setup.cmdline(':', {
+	    mapping = cmp.mapping.preset.cmdline(),
+	    sources = cmp.config.sources({
+	      { name = 'path' }
+	    }, {
+	      { name = 'cmdline' }
+	    }),
+	    matching = { disallow_symbol_nonprefix_matching = false }
+	  })
+
+	  local capabilities = require('cmp_nvim_lsp').default_capabilities()
 
 	vim.lsp.config('ts_ls',{
-	    coq.lsp_ensure_capabilities({
+	    capabilities = capabilities,
 	   settings = {
           typescript = {
             includeCompletionsForModuleExports = true,
@@ -59,15 +107,14 @@ return {
             includeCompletionsWithInsertText = true,
           },
         }, 
-	})})
+	})
 	vim.lsp.enable('ts_ls')
 
 	vim.lsp.config('rust_analyzer', {
+	    capabilities = capabilities,
 	  settings = {
 	    ['rust-analyzer'] = {
-		checkOnSave = {
-		    command = "clippy"
-		},
+		checkOnSave = true,
 		diagnostics = {
 		    enable = true;
 		    experimental = {
@@ -114,7 +161,7 @@ return {
 	vim.lsp.enable('rust_analyzer')
 
 	vim.lsp.config('clangd', {
-	    coq.lsp_ensure_capabilities({
+	    capabilities = capabilities,
 		cmd = {
 		    "clangd",
 		    "--background-index",
@@ -129,8 +176,8 @@ return {
 		    completeUnimported = true,
 		    clangdFileStatus = true,
 		},
-	    })
 	})
 
     end,
 }
+
